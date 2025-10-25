@@ -33,10 +33,12 @@ def decimalToBinary ( liste ) :
         while nb > 0 :
             binNb = str(nb%2) + binNb
             nb = nb // 2
+        
         binList.append(binNb)
+    print(binList)
     return binList
 
-def binaryToDecimal (listeB ) :
+def binaryToDecimal (listeB) :
     """
     Convertit les nombres d'une liste de binaire en décimal
 
@@ -51,6 +53,12 @@ def binaryToDecimal (listeB ) :
         decList.append(decNb)
     return decList
 
+def padding(nb, k) :
+    binNb = nb
+    if len(binNb) < k :
+            binNb = (k-len(binNb))*'0' +binNb
+    return binNb
+    
 # trop lent ?
 def nombreBits ( liste ) :
     """
@@ -93,37 +101,95 @@ crossing allowed — les entiers compressés peuvent s’étendre sur deux mots 
 (ex : un entier commence dans la fin d’un mot de 32 bits et continue dans le mot suivant).
 """
 
-def compress( input ) :
+def crossingCompress ( input ) :
     """
     compresse int[] input
 
     entree : input un tableau d'entiers décimaux
     sortie : un tableau d'entiers décimaux (compressé)
     """
-    listeBin = decimalToBinary(input)
     k = calculerK(input)
-    nb = math.floor(32/k)
-
+    listeBin = decimalToBinary(input)
+   
     compressedList = []
     strBin = ""
     i = 0
     for elem in listeBin :
-        if i == k :
-            compressedList.append(strBin)
-            strBin = ""
-            i = 0
-        else :
-            strBin = strBin + elem
-            i+=1
-    compressedList.append(strBin)
+        elemP = padding(elem, k)
+        for c in elemP :
+            if i == 32 :
+                compressedList.append(strBin)
+                i = 1
+                strBin = c
+
+            else :
+                strBin = strBin + c
+                i += 1
+    
+    compressedList.append(strBin)  
     print(compressedList)
+    return ([k]+binaryToDecimal(compressedList))
+     
+ 
 
-
-
-def decompress( output ) :
+def crossingDecompress( output ) :
     """
     decompresse int[] output
     """
+
+    k, compList = output[0], output[1:]
+    compList = decimalToBinary(compList)
+
+    if len(compList) > 1:
+        head = compList[:(-1)]
+        tail = compList[-1]
+        
+    else :
+        head = compList
+        tail = ""
+
+    binNb = ""
+
+    for elem in head :
+        elem = padding(elem, 32)
+        print(elem)
+        elemList = []
+        binNn = ""
+        for i in range(32) : 
+            if len(binNb) == k :
+                elemList.append(binNb)
+                binNb = elem[i]
+            else : 
+                binNb += elem[i]
+
+    if len(binNb) == k :
+        elemList.append(binNb)
+        binNb=""
+    print(elemList)
+    
+    tailList = []
+    binNbTail = ""
+    
+    for j in range(len(tail)-1, -1, -k):
+        print(j)
+        if (j-k+1) < 0 :
+            binNbTail = tail[0 : j+1]
+            binNb = binNb + padding(binNbTail,(k-len(binNb)))
+            tailList.append(binNb)
+        elif j == 0 :
+            binNbTail = tail[0]
+            binNb = binNb + padding(binNbTail,(k-len(binNb)))
+            tailList.append(binNb)
+        else :
+            tailList.append(tail[j-k+1 : j+1])
+    tailList.reverse()
+    elemList = elemList + tailList
+
+    return binaryToDecimal(elemList) 
+    
+
+
+
 
 #2ème mode de compression   
 """
@@ -131,7 +197,53 @@ no crossing — chaque entier compressé doit être entièrement contenu
 dans un mot de sortie (donc on peut gaspiller bits et aligner).
 """
 
-def get( i ) :
+def noCrossingCompress( input ) :
+    """
+    compresse int[] input
+
+    entree : input un tableau d'entiers décimaux
+    sortie : un tableau d'entiers décimaux (compressé)
+    """
+    k = calculerK(input)
+    nb = math.floor(32/k)
+    listeBin = decimalToBinary(input)
+
+    compressedList = []
+    strBin = ""
+    i = 0
+    for elem in listeBin :
+        if i == k :
+            compressedList.append(strBin)
+            strBin = padding(elem, k)
+            i = 1
+        else :
+            strBin = strBin + padding(elem, k)
+            i+=1
+    compressedList.append(strBin)
+    return ([k]+binaryToDecimal(compressedList))
+
+
+def noCrossingDecompress( output ) :
+    """
+    decompresse int[] output
+    """
+    k, compList = output[0], output[1:]
+    compList = decimalToBinary(compList)
+    finalList = []
+    for elem in compList :
+        elemList = []
+        for i in range(len(elem)-1, -1, -k ):
+            if (i-k+1) < 0 :
+                elemList.append(elem[0 : i+1])
+            elif i == 0 :
+                elemList.append(elem[0])
+            else :
+                elemList.append(elem[i-k+1 : i+1])
+        elemList.reverse()
+        finalList = finalList + elemList
+    return binaryToDecimal(finalList)       
+
+def get( i, k, array ) :
     """
     permet l’accès direct à l’élément i sans décompression complète
 
@@ -142,23 +254,30 @@ def get( i ) :
     l'élément à l'indice i
     """
 
+
+
 if __name__ == "__main__":
     values = [5, 3, 7, 1, 2, 6] # Example values (6 values, each 3 bits)
     data = [ 15, 3, 4, 23, 28, 1, 17, 18]
-    print(nombreBits([1, 2, 3, 4, 5]))  # ➜ 3
-    print(nombreBits([12, 25, 31]))     # ➜ 5
-    print(nombreBits([0, 0, 0]))        # ➜ 1
+    #print(nombreBits([1, 2, 3, 4, 5]))  # ➜ 3
+    #print(nombreBits([12, 25, 31]))     # ➜ 5
+    #print(nombreBits([0, 0, 0]))        # ➜ 1
 
-    print(calculerK([1, 2, 3, 4, 5]))  # ➜ 3
-    print(calculerK([12, 25, 31]))     # ➜ 5
-    print(calculerK([0, 0, 0]))        # ➜ 1
-    print(calculerK([ 15, 3, 4, 23, 28, 1, 17, 18]))        # ➜ 7
+    #print(calculerK([1, 2, 3, 4, 5]))  # ➜ 3
+    #print(calculerK([12, 25, 31]))     # ➜ 5
+    #print(calculerK([0, 0, 0]))        # ➜ 1
+    #print(calculerK([ 15, 3, 4, 23, 28, 1, 17, 18]))        # ➜ 7
 
-    print(decimalToBinary ( values ))
-    print(decimalToBinary ( data ))
+
     #print(decimalToBinary ( [ 1, 14, 67, 35, 89] ))
 
     print("il faut :")
-    print(math.floor(32/calculerK([ 15, 3, 4, 23, 28, 1, 17, 18])), "entiers")
-    compress(data)
-    print(binaryToDecimal(['1111111001011111100', '1000110010']))
+    print((32//calculerK([ 15, 3, 4, 23, 28, 1, 17, 18])), "entiers")
+    print("Méthode no crossing allowed")
+    comp = noCrossingCompress(data)
+    print(comp)
+    print(noCrossingDecompress(comp))
+    print("Méthode  crossing allowed")
+    compC = crossingCompress ( data )
+    print(compC)
+    print(crossingDecompress(compC))

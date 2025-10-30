@@ -1,2 +1,18 @@
+# Ignorer les fichiers Python compilés
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+
+# Ignorer les dossiers temporaires / build
+build/
+dist/
+
+# Ignorer les fichiers systèmes
+.DS_Store
+Thumbs.db
+
+# Ignorer fichiers personnels / IDE
+*.swp
+.vscode/
+.idea/

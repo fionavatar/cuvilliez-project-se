@@ -12,10 +12,6 @@ cas limite nb = O maxValue = 0 donc k = 1
 nb negatif attention
 valeur très grande à isoler -> overflow
 """
-#1 Determine the size of each element. Understand how many bits each piece of information requires
-#2 Allocate a Buffer Create in wich you will store you packed data
-#3 Pack the bits Use bitwise operations to combine the data into the buffer
-#4 unpack the bits Reverse the process when you need to access the stored data
 
 import math
 
@@ -86,6 +82,9 @@ def nombreBits ( liste ) :
 
 # plus rapide
 def calculerK(array):
+    if not array:
+        raise ValueError("La liste ne doit pas être vide")
+    
     maxValue = max(array)
     if maxValue == 0 :
         k = 1

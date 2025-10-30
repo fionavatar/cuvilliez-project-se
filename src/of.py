@@ -23,23 +23,29 @@ def calculerMax(array):
     """
     Calcule :
     - k1 : nombre de bits nécessaires pour représenter le max (overflow area)
-    - k2 : nombre de bits nécessaires qui couvre 80% des petites valeurs(zone principale)
+    - k2 : nombre de bits nécessaires qui couvre 80% des petites valeurs
+           tout en permettant d'encoder la position dans l'overflow
     """
     if not array:
         raise ValueError("La liste ne doit pas être vide")
 
-    # Conversion en binaire et calcul des longueurs
     listeBin = decimalToBinary(array)
     listeTaille = sorted([len(elem) for elem in listeBin])
 
-    # k1 = max bits
     k1 = listeTaille[-1]
-    #print(listeTaille[:-1])
-    #on cherche la valeur qui couvre 80% des valeurs tout en faisant attention à l'overflow
-    index = math.ceil(len(listeTaille[:-1])*0.8) - 1
-    k2 = listeTaille[index]  
 
-    return k1,k2
+    # k2 couvre 80% des petites valeurs
+    index = math.ceil(len(listeTaille[:-1]) * 0.8) - 1
+    k2 = listeTaille[index]
+
+    # Vérifier le nombre d’éléments dans l’overflow
+    nbOverflow = sum(1 for elem in listeBin if len(elem) > k2)
+    if nbOverflow > 0:
+        k_index = math.ceil(math.log2(nbOverflow))
+        k2 = max(k2, k_index)  # s'assurer que k2 peut encoder l'indice de l'overflow
+
+    return k1, k2
+
 
 def overflowCompress(input):
     """
@@ -57,6 +63,7 @@ def overflowCompress(input):
 
         # Découpage sur 32 bits
         if len(strBin) + k2 + 1 > 32:
+            strBin = strBin.ljust(32, '0')
             zoneP.append(strBin)
             strBin = ""
 
@@ -68,77 +75,91 @@ def overflowCompress(input):
         else:
             strBin += '0' + padding(elem, k2)
 
-    # Écriture de la zone d’overflow
-    for e in overflowArea:
-        if len(strBin) + k1 > 32:
-            zoneP.append(strBin)
-
-            strBin = ""
-        strBin += e
-
-    # Dernier mot (si incomplet)
     if strBin:
+        tailleDernier = len(strBin)
+        strBin = strBin.ljust(32, '0')
         zoneP.append(strBin)
-    return [k1, k2, len(overflowArea)] + binaryToDecimal(zoneP)
+
+    # On code les overflow dans leurs propres blocs de 32 bits
+    OFBin = ""
+    for e in overflowArea:
+        if len(OFBin) + k1 > 32:
+            OFBin = OFBin.ljust(32, '0')
+            zoneP.append(OFBin)
+            OFBin = ""
+        OFBin += e
+
+    #Dernier mot 
+    if len(OFBin)>0:
+        OFBin = OFBin.ljust(32, '0')
+        zoneP.append(OFBin)
+
+    return [k1, k2, len(overflowArea), tailleDernier] + binaryToDecimal(zoneP)
 
     
+def decoupe(s, k):
+    """
+    Découpe une chaîne binaire s en blocs de taille k en partant de la gauche.
+    Le dernier bloc (à droite) peut être plus court dans ce cas il s'agit seulement du padding.
+    """
+    blocs = []
+    while s:
+        blocs.append( s[:k])  # prend k bits à droite
+        s = s[k:]
+    return blocs
 
 
 def overflowDecompress(output):
     """
     Décompresse un tableau compressé avec overflowCompress().
     """
-    k1, k2, nbOF = output[0], output[1], output[2]
-    compList = output[3:]
+    k1, k2, nbOF, tailleDernier = output[0], output[1], output[2], output[3]
+    compList = output[4:]
+    compList = [bin(x)[2:].zfill(32) for x in compList]
 
-    # Convertir chaque mot en binaire (32 bits)
-    zoneP = [bin(x)[2:] for x in compList] 
+    nbTabOF = math.ceil((k1 * nbOF) / 32)
+    if nbTabOF > 0:
+        zoneP = compList[:-nbTabOF]
+        tail = compList[-nbTabOF:]
+    else:
+        zoneP = compList[:]
+        tail = []
 
     overflowArea = []
 
     for i in range(nbOF) :
-        overflowArea = [(zoneP[-1])[-k1:]] + overflowArea
-        zoneP[-1] = zoneP[-1][:-k1]
+        if len(tail[0]) < k1 :
+            del(tail[0])
+        overflowArea.append((tail[0])[:k1])
+        tail[0] = (tail[0])[k1:]
 
-        if len(zoneP[-1]) == 0 :
-            del(zoneP[-1])
-
+    # découper le dernier mot selon la taille du dernier bloc
+    if zoneP:  # vérifier qu'il y a des mots
+        zoneP[-1] = zoneP[-1][:tailleDernier]
+     # Convertir chaque mot en binaire 32 bits avec padding à gauche
     finalList = []
-    
     # Lecture de la zone principale
     for elem in zoneP :
+   
         elemList = []
-        for j in range(len(elem),0,-(k2+1)) :
-            start = max(0,j - (k2+1))
-            block = padding(elem[start : j],(k2+1))
-            flag = block[0]
-            bits = block[1:]
+        for j in range(0,len(elem),(k2+1)) :
+            block = elem[j : j + (k2+1)]
+            if(len(block) == (k2+1)) :
+                flag = block[0]
+                bits = block[1:]
 
-            if flag == '0':
-                elemList = [bits] + elemList
-            else:
-                index = int(bits, 2)
-                if index < len(overflowArea):
-                    elemList = [overflowArea[index]] + elemList
+                if flag == '0':
+                    elemList += [bits] 
+                else:
+                    index = int(bits, 2)
+                    if index < len(overflowArea):
+                        elemList += [overflowArea[index]] 
 
         finalList.extend(elemList)
        
     # Conversion finale
     finalList = [int(b, 2) for b in finalList]
     return finalList
-
-
-
-def decoupe(s, k):
-    """
-    Découpe une chaîne binaire s en blocs de taille k en partant de la droite.
-    Le premier bloc (à gauche) peut être plus court.
-    """
-    blocs = []
-    while s:
-        blocs.insert(0, s[-k:])  # prend k bits à droite
-        s = s[:-k]
-    return blocs
 
 
 
@@ -152,31 +173,35 @@ def overflowGet( i, array ) :
     Sortie :
     l'élément à l'indice i
     """
-    k1, k2, nbOF = array[0], array[1], array[2]
-    compList = array[3:]
+    k1, k2, nbOF, tailleDernier = array[0], array[1], array[2], array[3]
+    compList = array[4:]
 
     indiceBloc = i // (32 // (k2 + 1))
     nbBlocsParMot = 32 // (k2 + 1)
     indiceMot = i % nbBlocsParMot   
    
     # Convertir elem en binaire 
-    elem = bin(compList[indiceBloc])[2:] 
+    elem = bin(compList[indiceBloc])[2:].zfill(32)
     mots = decoupe(elem,(k2+1))
-    mot = padding(mots[indiceMot],(k2+1))
+
+    mot = mots[indiceMot]
     flag = mot[0]
     bits = mot[1:]
-
+   
     if flag == '0':
         return int(bits, 2)
     else:
-        zoneP = [bin(x)[2:] for x in compList] 
+        nbTabOF = math.ceil((k1 * nbOF) / 32)
+        tail = compList[-nbTabOF:]
+        tail = [bin(x)[2:].zfill(32) for x in tail]
         overflowArea = []
-        #On isole la zone overflow
+       
         for i in range(nbOF) :
-            overflowArea = [(zoneP[-1])[-k1:]] + overflowArea
-            zoneP[-1] = zoneP[-1][:-k1]
-        if len(zoneP[-1]) == 0 :
-            del(zoneP[-1])
+            if len(tail[0]) < k1 :
+                del(tail[0])
+            overflowArea.append((tail[0])[:k1])
+            tail[0] = (tail[0])[k1:]
+
 
         index = int(bits, 2)
         if index < len(overflowArea):
@@ -195,13 +220,23 @@ if __name__ == "__main__":
     #data = [75, 95, 95, 22, 40, 77, 67, 97, 17, 9, 91, 60, 24, 69, 96, 62, 7, 11, 65, 60, 24, 90, 44, 15, 52, 14, 7, 94, 50, 8, 48, 32, 0, 42, 37, 73, 98, 42, 10, 84, 19, 52, 76, 72, 56, 3, 92, 4, 37, 62]
     #data = [21, 11, 32, 39, 45, 80, 63, 3, 72, 2, 50, 27, 45, 12, 69, 43, 76, 70, 89, 51, 20, 55, 28, 72, 31, 73, 90, 20, 62, 67, 56, 65, 63, 75, 69, 71, 10, 69, 2, 97, 91, 29, 17, 57, 93, 74, 33, 46, 56, 67]
     #data = [1, 2, 3, 4, 6, 8, 9, 1024, 4, 5, 2048]
-    data = [0,1, 2,3, 4, 5, 6, 7, 8, 9]
+    data = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 50, 75, 100, 0]
     compressed = overflowCompress(data)
     print("Compressé :", compressed)
 
     decompressed = overflowDecompress(compressed)
     print("Décompressé :", decompressed)
     assert decompressed == data
+    print("get 20 = 0 -> 50 : ", overflowGet(20,compressed))
+    print("get i = 21 -> 75 : ", overflowGet(21,compressed))
+    print("get i = 22 -> 100 : ", overflowGet(22,compressed))
+    print("get i = 3 -> 3 : ", overflowGet(3,compressed))
+    print("get i = 4 -> 4 : ", overflowGet(4,compressed))
+    print("get i = 5 -> 5 : ", overflowGet(5,compressed))
+    print("get i = 6 -> 6 : ", overflowGet(6,compressed))
+    print("get i = 7 -> 7 : ", overflowGet(7,compressed))
+    print("get i = 8 -> 8 : ", overflowGet(8,compressed))
+    print("get i = 9 -> 9 : ", overflowGet(9,compressed))
 
     #print("get i = 0 -> 1 : ", overflowGet(0,compressed))
     #print("get i = 1 -> 2 : ", overflowGet(1,compressed))

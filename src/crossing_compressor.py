@@ -1,4 +1,5 @@
-from outils import *
+from .outils import *
+
 # 1er mode de compression
 """
 crossing allowed — les entiers compressés peuvent s’étendre sur deux mots de sortie 
@@ -9,6 +10,8 @@ class CrossingCompressor:
     """Compression crossing allowed"""
 
     def compress(self, data):
+        if not data:
+            return []
         return crossingCompress(data)
 
     def decompress(self, compressed):
@@ -25,6 +28,9 @@ def crossingCompress ( input ) :
     entree : input un tableau d'entiers décimaux
     sortie : un tableau d'entiers décimaux (compressé)
     """
+    if not input :
+        return []
+    
     k = calculerK(input)
     listeBin = decimalToBinary(input)
    
@@ -45,9 +51,7 @@ def crossingCompress ( input ) :
     return [k, tailleDernier] + binaryToDecimal(compressedList)
 
 
-     
  
-
 def crossingDecompress( output ) :
     """
     Décompresse int[] output (mode crossing allowed)
@@ -55,7 +59,9 @@ def crossingDecompress( output ) :
     entrée :  output un tableau d'entiers décimaux (compressé)
     sortie :  un tableau d'entiers décimaux
     """
-
+    if not output :
+        return []
+    
     k, tailleDernier = output[0], output[1]
     compList = output[2:]
     compList = decimalToBinary(compList)
@@ -125,17 +131,3 @@ def crossingGet(i, array):
 
     return int(bits, 2)
 
-
-
-if __name__ == "__main__":
-    values = [5, 3, 7, 1, 2, 6] # Example values (6 values, each 3 bits)
-    #data = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 50, 75, 100, 0]
-    #data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    data = [15, 3, 4, 23, 28, 1, 17, 18]
-    #data = [75, 95, 95, 22, 40, 77, 67, 97, 17, 9, 91, 60, 24, 69, 96, 62, 7, 11, 65, 60, 24, 90, 44, 15, 52, 14, 7, 94, 50, 8, 48, 32, 0, 42, 37, 73, 98, 42, 10, 84, 19, 52, 76, 72, 56, 3, 92, 4, 37, 62]
-  
-    print("Méthode  crossing allowed")
-    compC = crossingCompress ( data )
-    print(compC)
-    print(crossingDecompress(compC))
-    print(crossingGet(4,compC))

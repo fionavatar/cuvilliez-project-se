@@ -11,6 +11,7 @@ def generate_test_cases():
         [1]*10,  # tous identiques
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         [15, 3, 4, 23, 28, 1, 17, 18],
+        [15, 3, 0, 23, 0, 1, 0, 18, 56, 34],
         [random.randint(0, 10) for _ in range(50)],  # petits nombres
         [random.randint(0, 1000) for _ in range(50)],  # valeurs plus grandes
         [0]*10 + [1]*10 + [50, 75, 100, 0],

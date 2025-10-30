@@ -181,39 +181,4 @@ def overflowGet( i, array ) :
         index = int(bits, 2)
         if index < len(overflowArea):
             return int(overflowArea[index],2)
-
-    
-
-
-
-
-if __name__ == "__main__":
-    values = [5, 3, 7, 1, 2, 6] # Example values (6 values, each 3 bits)
-    #data = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 50, 75, 100, 0]
-    #data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    #data = [15, 3, 4, 23, 28, 1, 17, 18]
-    #data = [75, 95, 95, 22, 40, 77, 67, 97, 17, 9, 91, 60, 24, 69, 96, 62, 7, 11, 65, 60, 24, 90, 44, 15, 52, 14, 7, 94, 50, 8, 48, 32, 0, 42, 37, 73, 98, 42, 10, 84, 19, 52, 76, 72, 56, 3, 92, 4, 37, 62]
-    #data = [21, 11, 32, 39, 45, 80, 63, 3, 72, 2, 50, 27, 45, 12, 69, 43, 76, 70, 89, 51, 20, 55, 28, 72, 31, 73, 90, 20, 62, 67, 56, 65, 63, 75, 69, 71, 10, 69, 2, 97, 91, 29, 17, 57, 93, 74, 33, 46, 56, 67]
-    #data = [1, 2, 3, 4, 6, 8, 9, 1024, 4, 5, 2048]
-    data = [3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 1000, 2000, 4000, 8000, 16000, 32000, 64000, 128000, 256000, 512000]
-    compressed = overflowCompress(data)
-    print("Compressé :", compressed)
-
-    decompressed = overflowDecompress(compressed)
-    print("Décompressé :", decompressed)
-    assert decompressed == data
-
-    #print("get i = 0 -> 1 : ", overflowGet(0,compressed))
-    #print("get i = 1 -> 2 : ", overflowGet(1,compressed))
-    #print("get i = 2 -> 3 : ", overflowGet(2,compressed))
-    #print("get i = 3 -> 4 : ", overflowGet(3,compressed))
-    #print("get i = 4 -> 6 : ", overflowGet(4,compressed))
-    #print("get i = 5 -> 8 : ", overflowGet(5,compressed))
-    #print("get i = 6 -> 9 : ", overflowGet(6,compressed))
-    #print("get i = 7 -> 1024 : ", overflowGet(7,compressed))
-    #print("get i = 8 -> 4 : ", overflowGet(8,compressed))
-    #print("get i = 9 -> 5 : ", overflowGet(9,compressed))
-    #print("get i = 10 -> 2048 : ", overflowGet(10,compressed))
-    
-  
    

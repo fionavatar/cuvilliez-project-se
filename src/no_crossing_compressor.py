@@ -1,4 +1,5 @@
-from outils import *
+from .outils import *
+
 
 #2ème mode de compression   
 """
@@ -10,6 +11,8 @@ class NoCrossingCompressor:
     """Compression no crossing allowed"""
 
     def compress(self, data):
+        if not data:
+            return []
         return noCrossingCompress(data)
 
     def decompress(self, compressed):
@@ -26,6 +29,9 @@ def noCrossingCompress( input ) :
     entree : input un tableau d'entiers décimaux
     sortie : un tableau d'entiers décimaux (compressé)
     """
+    if not input :
+        return []
+    
     k = calculerK(input)
     listeBin = [padding(elem, k) for elem in decimalToBinary(input)]
 
@@ -44,6 +50,10 @@ def noCrossingCompress( input ) :
 
 
 def noCrossingDecompress(output):
+
+    if not output :
+        return []
+
     k, tailleDernier = output[0], output[1]
     compList = output[2:]
     
@@ -80,26 +90,4 @@ def noCrossingGet( i, array ) :
 
     return a[(i % (32 // k))]
 
-
-
-
-if __name__ == "__main__":
-    values = [5, 3, 7, 1, 2, 6] # Example values (6 values, each 3 bits)
-    data = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 50, 75, 100, 0]
-    #data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    #data = [15, 3, 4, 23, 28, 1, 17, 18]
-    #data = [75, 95, 95, 22, 40, 77, 67, 97, 17, 9, 91, 60, 24, 69, 96, 62, 7, 11, 65, 60, 24, 90, 44, 15, 52, 14, 7, 94, 50, 8, 48, 32, 0, 42, 37, 73, 98, 42, 10, 84, 19, 52, 76, 72, 56, 3, 92, 4, 37, 62]
-    #data = [21, 11, 32, 39, 45, 80, 63, 3, 72, 2, 50, 27, 45, 12, 69, 43, 76, 70, 89, 51, 20, 55, 28, 72, 31, 73, 90, 20, 62, 67, 56, 65, 63, 75, 69, 71, 10, 69, 2, 97, 91, 29, 17, 57, 93, 74, 33, 46, 56, 67]
-
-    print("il faut :")
-    print((32//calculerK(data)), "entiers")
-    print(data)
-    print("Méthode no crossing allowed")
-    comp = noCrossingCompress(data)
-    print(comp)
-    print(noCrossingDecompress(comp))
-    print(noCrossingGet(20,comp)) 
-    print(noCrossingGet(21,comp))
-    print(noCrossingGet(22,comp))
-  
-   
+ 

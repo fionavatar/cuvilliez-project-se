@@ -1,5 +1,4 @@
 import sys
-import random
 from factory import compressor_factory
 
 def run_test(data, mode):
@@ -20,15 +19,14 @@ def run_test(data, mode):
         else:
             print("❌ Erreur de décompression !")
 
-        # Test accès direct (si disponible)
-        if hasattr(compressor, "get"):
-            for i in range(len(data)):
-                value = compressor.get(i, compressed)
-                if value != data[i]:
-                    print(f"❌ get({i}) = {value}, attendu {data[i]}")
-                    break
-            else:
-                print("✅ Accès direct correct pour tous les éléments")
+        # Test accès direct avec get() pour tous les éléments
+        for i in range(len(data)):
+            value = compressor.get(i, compressed)
+            if value != data[i]:
+                print(f"❌ get({i}) = {value}, attendu {data[i]}")
+                break
+        else:
+            print("✅ Accès direct correct pour tous les éléments")
 
     except Exception as e:
         print("❌ Erreur :", e)
@@ -48,36 +46,26 @@ def load_data_from_file(filepath):
 def main():
     """
     Usage :
-      python main.py overflow
-      python main.py crossing test_data.txt
+      python main.py [mode] [fichier_optionnel]
+    Exemple :
+      python main.py overflow test_data.txt
     """
-    if len(sys.argv) == 1:
-        print("Modes disponibles : crossing | noCrossing | overflow")
-        mode = input("Choisir un mode : ").strip()
-        path = input("Chemin vers un fichier de test (optionnel) : ").strip()
-        if path:
-            data = load_data_from_file(path)
-        else:
-            data = [random.randint(0, 100) for _ in range(20)]
-        run_test(data, mode)
-
-
     if len(sys.argv) < 2:
-        print("Usage : python main.py [mode] [fichier (optionnel)]")
+        print("Usage : python main.py [mode] [fichier_optionnel]")
+        print("Modes disponibles : crossing | noCrossing | overflow")
         sys.exit(1)
 
     mode = sys.argv[1]
-    data = []
 
+    # Chargement des données depuis un fichier ou exemple codé
     if len(sys.argv) == 3:
         filepath = sys.argv[2]
         data = load_data_from_file(filepath)
     else:
-        # Si aucun fichier, générer des données aléatoires
-        data = [random.randint(0, 100) for _ in range(20)]
+        # Exemple de données si aucun fichier fourni
+        data = [1, 2, 3, 1024, 4, 5, 2048]
 
     run_test(data, mode)
-
 
 if __name__ == "__main__":
     main()

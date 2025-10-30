@@ -1,8 +1,8 @@
 import random
-from outils import *
-from crossing_compressor import *
-from no_crossing_compressor import *
-from overflow_compressor import *
+
+from src.crossing_compressor import *
+from src.no_crossing_compressor import *
+from src.overflow_compressor import *
 
 def generate_test_cases():
     return [

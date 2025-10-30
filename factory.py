@@ -1,6 +1,7 @@
-from overflow_compressor import OverflowCompressor  
-from crossing_compressor import CrossingCompressor
-from no_crossing_compressor import NoCrossingCompressor
+from src.overflow_compressor import OverflowCompressor
+from src.crossing_compressor import CrossingCompressor
+from src.no_crossing_compressor import NoCrossingCompressor
+
 
 def compressor_factory(mode: str, data=None):
     """

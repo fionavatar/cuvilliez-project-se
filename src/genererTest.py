@@ -1,7 +1,7 @@
 import random
-from dataCompressing import *
-from crossing_allowed import *
-from no_crossing_allowed import *
+from outils import *
+from crossing_compressor import *
+from no_crossing_compressor import *
 
 def test_compression_functions():
     # Configurations de test

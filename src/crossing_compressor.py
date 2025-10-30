@@ -1,10 +1,22 @@
-from dataCompressing import *
-import math
+from outils import *
 # 1er mode de compression
 """
 crossing allowed — les entiers compressés peuvent s’étendre sur deux mots de sortie 
 (ex : un entier commence dans la fin d’un mot de 32 bits et continue dans le mot suivant).
 """
+
+class CrossingCompressor:
+    """Compression crossing allowed"""
+
+    def compress(self, data):
+        return crossingCompress(data)
+
+    def decompress(self, compressed):
+        return crossingDecompress(compressed)
+
+    def get(self, index, compressed):
+        return crossingGet(index, compressed)
+
 
 def crossingCompress ( input ) :
     """

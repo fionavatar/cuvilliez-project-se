@@ -1,11 +1,23 @@
-from dataCompressing import *
-import math
+from outils import *
 
 #2ème mode de compression   
 """
 no crossing — chaque entier compressé doit être entièrement contenu 
 dans un mot de sortie (donc on peut gaspiller bits et aligner).
 """
+
+class NoCrossingCompressor:
+    """Compression no crossing allowed"""
+
+    def compress(self, data):
+        return noCrossingCompress(data)
+
+    def decompress(self, compressed):
+        return noCrossingDecompress(compressed)
+
+    def get(self, index, compressed):
+        return noCrossingGet(index, compressed)
+
 
 def noCrossingCompress( input ) :
     """

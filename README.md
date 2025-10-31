@@ -33,7 +33,12 @@ python3 src.main.py [mode] [fichier_optionnel]
 Modes disponibles : crossing | noCrossing | overflow
 
 Exemple d'utilisation : 
-
+```bash
 python3 -m examples.demo_no_crossing
+```
+```bash
 python3 -m examples.testAll
+```
+```bash
 python3 -m src.main crossing ./tests/data7.txt
+```

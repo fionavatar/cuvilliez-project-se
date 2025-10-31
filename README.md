@@ -28,6 +28,7 @@ Des benchmarks sont implémentés pour mesurer :
 
 ```bash
 python3 src.main.py [mode] [fichier_optionnel]
+```
 
 Modes disponibles : crossing | noCrossing | overflow
 

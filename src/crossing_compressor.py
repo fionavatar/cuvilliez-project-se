@@ -46,7 +46,6 @@ def crossingCompress ( input ) :
             strBin += c
     compressedList.append(strBin)  
     tailleDernier = len(strBin)  # nombre réel de bits dans le dernier mot
-    print(compressedList)
     
     return [k, tailleDernier] + binaryToDecimal(compressedList)
 

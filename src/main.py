@@ -1,35 +1,36 @@
 import sys
-from factory import compressor_factory
+from src.factory import compressor_factory
+from src.benchmarks.measures import benchmark_compression
 
 def run_test(data, mode):
-    print(f"\n=== TEST MODE: {mode} ===")
+    print(f"\n________  MODE : {mode}   ________")
     print(f"Données d'entrée : {data}\n")
 
     compressor = compressor_factory(mode, data)
 
     try:
         compressed = compressor.compress(data)
-        print("✅ Compression réussie :", compressed)
+        print("Compression réussie :", compressed)
 
         decompressed = compressor.decompress(compressed)
-        print("✅ Décompression :", decompressed)
+        print("Décompression :", decompressed)
 
         if decompressed == data:
-            print("✅ Décompression correcte !")
+            print("Décompression correcte !")
         else:
-            print("❌ Erreur de décompression !")
+            print("Erreur de décompression !")
 
         # Test accès direct avec get() pour tous les éléments
         for i in range(len(data)):
             value = compressor.get(i, compressed)
             if value != data[i]:
-                print(f"❌ get({i}) = {value}, attendu {data[i]}")
+                print(f"get({i}) = {value}, attendu {data[i]}")
                 break
         else:
-            print("✅ Accès direct correct pour tous les éléments")
+            print("Accès direct correct pour tous les éléments")
 
     except Exception as e:
-        print("❌ Erreur :", e)
+        print("Erreur :", e)
 
 def load_data_from_file(filepath):
     """Charge une liste d'entiers depuis un fichier texte."""
@@ -46,9 +47,9 @@ def load_data_from_file(filepath):
 def main():
     """
     Usage :
-      python main.py [mode] [fichier_optionnel]
+      python src/main.py [mode] [fichier_optionnel]
     Exemple :
-      python main.py overflow test_data.txt
+      python src/main.py overflow test_data.txt
     """
     if len(sys.argv) < 2:
         print("Usage : python main.py [mode] [fichier_optionnel]")
@@ -57,15 +58,19 @@ def main():
 
     mode = sys.argv[1]
 
-    # Chargement des données depuis un fichier ou exemple codé
+    # Chargement des données
     if len(sys.argv) == 3:
         filepath = sys.argv[2]
         data = load_data_from_file(filepath)
     else:
-        # Exemple de données si aucun fichier fourni
         data = [1, 2, 3, 1024, 4, 5, 2048]
 
+    # Test fonctionnel
     run_test(data, mode)
+
+    # Mesure de performance
+    latency_t = 0.05  # ex : 50 ms
+    benchmark_compression(data, latency_t)
 
 if __name__ == "__main__":
     main()

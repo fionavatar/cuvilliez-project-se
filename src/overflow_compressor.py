@@ -40,6 +40,7 @@ def calculerMax(array):
     - k1 : nombre de bits nécessaires pour représenter le max (overflow area)
     - k2 : nombre de bits nécessaires qui couvre 80% des petites valeurs
            tout en permettant d'encoder la position dans l'overflow
+           k2 < 32 ce qui nécessite que toutes les grandes valeurs soient dans l'overflow
     """
     if not array:
         raise ValueError("La liste ne doit pas être vide")

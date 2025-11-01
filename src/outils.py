@@ -15,7 +15,7 @@ valeur très grande à isoler -> overflow
 
 import math
 
-def decimalToBinary ( liste ) :
+def decimalToBinary ( liste ) : #mieux d'utiliser bin(x)[2:]
     """
     Convertit les nombres d'une liste de décimal en binairre
 
@@ -35,7 +35,7 @@ def decimalToBinary ( liste ) :
 
     return binList
 
-def binaryToDecimal (listeB) :
+def binaryToDecimal (listeB) : #mieux d'utiliser int(str,2)
     """
     Convertit les nombres d'une liste de binaire en décimal
 
@@ -50,7 +50,7 @@ def binaryToDecimal (listeB) :
         decList.append(decNb)
     return decList
 
-def padding(nb, k) :
+def padding(nb, k) : #sinon nb.zfill(k)
     binNb = nb
     if len(binNb) < k :
             binNb = (k-len(binNb))*'0' +binNb

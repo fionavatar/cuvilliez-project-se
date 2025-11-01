@@ -1,26 +1,8 @@
-
-"""
-We now want to perform compression with overflow areas. 
-Indeed, if a single number in the initial array requires a large number of bits k and the other numbers require
- k' bits with k' < k, it is a waste to represent all numbers with k bits. 
- In this case, we can assign a special value to a compressed integer 
- that indicates that the true value is located elsewhere at a certain position in my table, called the overflow area.
-
-For example, if we want to encode the numbers 1, 2, 3, 1024, 4, 5, and 2048. 
-We can encode 1, 2, 3, and 4 using 3 bits and the other numbers using 11 bits at the end. 
-Since we don't want to lose direct access, we must precalculate the number of integers in the overflow area and then integrate this into our encoding.
- Here, we have 2 integers in the overflow area, which requires 1 bit to be encoded. 
- We will use 1 bit of the encoding to express the fact that we are not directly representing a number but a position in the overflow area. 
- If 1 corresponds to the overflow area, 
- and x-y means that the first bit is x and the others are y, we will represent the sequence of numbers 1, 2, 3, 1024, 4, 5, 2048 
- as 0-1, 0-2, 0-3, 1-0, 0-4, 0-5, 1-1, 1024, 2048
-"""
-
 from .outils import *
 import math
 
-class OverflowCompressor:
-    """Compression avec overflow"""
+class NegatifCompressor:
+    """Compression des entiers négatifs ou/et positifs avec overflow"""
 
     def compress(self, data):
         if not data:
@@ -44,6 +26,7 @@ def calculerMax(array):
     if not array:
         raise ValueError("La liste ne doit pas être vide")
 
+    array = ([abs(elem) for elem in array])
     listeBin = decimalToBinary(array)
     listeTaille = sorted([len(elem) for elem in listeBin])
 
@@ -58,8 +41,9 @@ def calculerMax(array):
     if nbOverflow > 0:
         k_index = math.ceil(math.log2(nbOverflow))
         k2 = max(k2, k_index)  # s'assurer que k2 peut encoder l'indice de l'overflow
+        k2 = min(k2, 31)  # k2+1 ≤ 32
 
-    return k1, k2
+    return k1, (k2 +1) 
 
 
 def overflowCompress(input):
@@ -67,21 +51,27 @@ def overflowCompress(input):
     Compression avec overflow en mots de 32 bits.
     Retourne une liste d'entiers compressés.
     """
+    
     if not input :
         return []
     
     k1, k2 = calculerMax(input)
     if k2 >= 32: #on évite un dépassement et donc une division par zéro
         k2 = 31
-    listeBin = decimalToBinary(input)
+    
 
     strBin = ""
     zoneP = []
     overflowArea = []
+
     tailleDernier = 32
 
-    for elem in listeBin:
-
+    for elem in input:
+        if elem < 0 :
+            signe = '1'
+        else :
+            signe = '0' 
+        binElem = bin(abs(elem))[2:]
         # Découpage sur 32 bits
         if len(strBin) + k2 + 1 > 32:
             strBin = strBin.ljust(32, '0')
@@ -89,13 +79,14 @@ def overflowCompress(input):
             strBin = ""
 
         # si overflow on marque avec un flag '1' et sa position dans la partie overflow area
-        if len(elem) > k2:
-            overflowArea.append(padding(elem, k1))
-            ind = bin(len(overflowArea) - 1)[2:].zfill(k2)
-            strBin += '1' + ind
+        if len(binElem) > (k2 - 1):
+            overflowArea.append(padding(binElem, k1))
+            ind = bin(len(overflowArea) - 1)[2:].zfill(k2-1)
+            strBin += '1' + signe + ind
         else:
-            strBin += '0' + padding(elem, k2)
-
+            strBin += '0' + signe + padding(binElem, k2-1)
+       
+        
     if strBin:
         tailleDernier = len(strBin)
         strBin = strBin.ljust(32, '0')
@@ -115,6 +106,7 @@ def overflowCompress(input):
         OFBin = OFBin.ljust(32, '0')
         zoneP.append(OFBin)
 
+    print(zoneP)
     return [k1, k2, len(overflowArea), tailleDernier] + binaryToDecimal(zoneP)
 
     
@@ -132,7 +124,7 @@ def decoupe(s, k):
 
 def nb_blocks_overflow(k1, nbOF):
     """Calcule le nombre exact de blocs de 32 bits nécessaires pour stocker nbOF entiers
-       de k1 bits chacun, sans crossing et avec padding à la fin de chaque bloc."""
+       de k1 bits chacun, avec padding à la fin de chaque bloc."""
     bits_used = 0
     blocks = 1 if nbOF > 0 else 0
     for _ in range(nbOF):
@@ -153,6 +145,7 @@ def overflowDecompress(output):
     k1, k2, nbOF, tailleDernier = output[0], output[1], output[2], output[3]
     compList = output[4:]
     compList = [bin(x)[2:].zfill(32) for x in compList]
+  
     nbTabOF = nb_blocks_overflow(k1, nbOF)
 
     if nbTabOF > 0:
@@ -177,25 +170,30 @@ def overflowDecompress(output):
     finalList = []
     # Lecture de la zone principale
     for elem in zoneP :
-   
-        elemList = []
         for j in range(0,len(elem),(k2+1)) :
             block = elem[j : j + (k2+1)]
             if(len(block) == (k2+1)) :
                 flag = block[0]
-                bits = block[1:]
-
+                signe = block[1]
+                bits = block[2:]
+    
                 if flag == '0':
-                    elemList += [bits] 
+                    if signe == '1' :
+                        val = - int(bits, 2) 
+                    else : 
+                        val = int(bits, 2) 
+
                 else:
                     index = int(bits, 2)
                     if index < len(overflowArea):
-                        elemList += [overflowArea[index]] 
-
-        finalList.extend(elemList)
+                        if signe == '1' :
+                            val = - int(overflowArea[index], 2) 
+                        else : 
+                            val = int(overflowArea[index], 2) 
+          
+                finalList.append(val)
        
-    # Conversion finale
-    finalList = [int(b, 2) for b in finalList]
+
     return finalList
 
 
@@ -223,10 +221,15 @@ def overflowGet( i, array ) :
 
     mot = mots[indiceMot]
     flag = mot[0]
-    bits = mot[1:]
+    signe = mot[1]
+    bits = mot[2:]
    
     if flag == '0':
-        return int(bits, 2)
+        if signe == '1' :
+            return - int(bits, 2)
+        else : 
+            return  int(bits, 2)
+
     else:
         nbTabOF = nb_blocks_overflow(k1, nbOF)
         tail = compList[-nbTabOF:]
@@ -242,5 +245,23 @@ def overflowGet( i, array ) :
 
         index = int(bits, 2)
         if index < len(overflowArea):
-            return int(overflowArea[index],2)
+            if signe == '1' :
+                return -int(overflowArea[index],2)
+            else : 
+                return int(overflowArea[index],2)
 
+
+if __name__ == "__main__":
+    data = [ -1, 0, 45, -23456, 7865, -6, 0 , 87, 0, 9, -1]
+    comp = overflowCompress(data)
+    print(comp)
+    decomp = overflowDecompress(comp)
+    print(decomp)
+    print(overflowGet(0,comp))
+    print(overflowGet(1,comp))
+    print(overflowGet(2,comp))
+    print(overflowGet(3,comp))
+    print(overflowGet(4,comp))
+    print(overflowGet(5,comp))
+    print(overflowGet(6,comp))
+    print(overflowGet(7,comp))

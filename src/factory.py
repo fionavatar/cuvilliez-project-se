@@ -1,6 +1,7 @@
 from src.overflow_compressor import OverflowCompressor
 from src.crossing_compressor import CrossingCompressor
 from src.no_crossing_compressor import NoCrossingCompressor
+from src.negatif_compressor import NegatifCompressor
 
 
 def compressor_factory(mode: str, data=None):
@@ -17,5 +18,7 @@ def compressor_factory(mode: str, data=None):
         return CrossingCompressor()
     elif mode == "noCrossing":
         return NoCrossingCompressor()
+    elif mode == "negatif":
+        return NegatifCompressor()
     else:
         raise ValueError(f"Mode inconnu: {mode}")

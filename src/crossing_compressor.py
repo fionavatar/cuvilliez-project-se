@@ -36,7 +36,8 @@ def crossingCompress ( input ) :
    
     compressedList = []
     strBin = ""
-
+    
+    tailleDernier = 32
     for elem in listeBin :
         elemP = padding(elem, k)
         for c in elemP :

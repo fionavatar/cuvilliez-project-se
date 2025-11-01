@@ -37,7 +37,8 @@ def noCrossingCompress( input ) :
 
     compressedList = []
     strBin = ""
-
+    
+    tailleDernier = 32
     for elem in listeBin :
         if len(strBin) + k > 32 :
             compressedList.append(strBin.ljust(32, '0'))

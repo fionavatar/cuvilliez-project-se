@@ -41,14 +41,14 @@ def test_compression_functions():
                     compressed = overflowCompress(case)
                     decompressed = overflowDecompress(compressed)
             except Exception as e:
-                print(f"❌ Erreur lors de la compression/decompression: {e}")
+                print(f" Erreur lors de la compression/decompression: {e}")
                 continue
 
             # Vérification complète
             if decompressed == case:
-                print("✅ Décompression correcte")
+                print(" Décompression correcte")
             else:
-                print("❌ Erreur de décompression")
+                print(" Erreur de décompression")
                 print("Résultat:", decompressed)
 
             # Test accès direct
@@ -64,15 +64,15 @@ def test_compression_functions():
 
                     if value != case[i]:
                         access_errors += 1
-                        print(f"❌ Erreur get({i}): attendu {case[i]}, obtenu {value}")
+                        print(f" Erreur get({i}): attendu {case[i]}, obtenu {value}")
                 except Exception as e:
                     access_errors += 1
-                    print(f"❌ Exception get({i}): {e}")
+                    print(f" Exception get({i}): {e}")
 
             if access_errors == 0:
-                print("✅ Accès direct correct pour tous les éléments\n")
+                print(" Accès direct correct pour tous les éléments\n")
             else:
-                print(f"❌ {access_errors} erreurs dans l'accès direct\n")
+                print(f" {access_errors} erreurs dans l'accès direct\n")
 
 if __name__ == "__main__":
     test_compression_functions()

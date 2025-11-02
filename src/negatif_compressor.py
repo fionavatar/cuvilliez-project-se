@@ -106,7 +106,7 @@ def overflowCompress(input):
         OFBin = OFBin.ljust(32, '0')
         zoneP.append(OFBin)
 
-    print(zoneP)
+
     return [k1, k2, len(overflowArea), tailleDernier] + binaryToDecimal(zoneP)
 
     
@@ -122,17 +122,17 @@ def decoupe(s, k):
     return blocs
 
 
-def nb_blocks_overflow(k1, nbOF):
+def nbBlocsOverflow(k1, nbOF):
     """Calcule le nombre exact de blocs de 32 bits nécessaires pour stocker nbOF entiers
        de k1 bits chacun, avec padding à la fin de chaque bloc."""
     bits_used = 0
-    blocks = 1 if nbOF > 0 else 0
+    blocs = 1 if nbOF > 0 else 0
     for _ in range(nbOF):
         if bits_used + k1 > 32:
-            blocks += 1
+            blocs += 1
             bits_used = 0
         bits_used += k1
-    return blocks
+    return blocs
 
 
 def overflowDecompress(output):
@@ -146,7 +146,7 @@ def overflowDecompress(output):
     compList = output[4:]
     compList = [bin(x)[2:].zfill(32) for x in compList]
   
-    nbTabOF = nb_blocks_overflow(k1, nbOF)
+    nbTabOF = nbBlocsOverflow(k1, nbOF)
 
     if nbTabOF > 0:
         zoneP = compList[:-nbTabOF]
@@ -174,7 +174,7 @@ def overflowDecompress(output):
             block = elem[j : j + (k2+1)]
             if(len(block) == (k2+1)) :
                 flag = block[0]
-                signe = block[1]
+                signe = block[1] # '1' négatif '0' positif
                 bits = block[2:]
     
                 if flag == '0':
@@ -231,7 +231,7 @@ def overflowGet( i, array ) :
             return  int(bits, 2)
 
     else:
-        nbTabOF = nb_blocks_overflow(k1, nbOF)
+        nbTabOF = nbBlocsOverflow(k1, nbOF)
         tail = compList[-nbTabOF:]
         tail = [bin(x)[2:].zfill(32) for x in tail]
         overflowArea = []

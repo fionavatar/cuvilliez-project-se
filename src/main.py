@@ -33,7 +33,7 @@ def run_test(data, mode):
         print("Erreur :", e)
 
 def load_data_from_file(filepath):
-    """Charge une liste d'entiers depuis un fichier texte."""
+    """Charge une liste d'entiers depuis un fichier texte"""
     try:
         with open(filepath, "r") as f:
             content = f.read().strip()
@@ -47,13 +47,11 @@ def load_data_from_file(filepath):
 def main():
     """
     Usage :
-      python src/main.py [mode] [fichier_optionnel]
-    Exemple :
-      python src/main.py overflow test_data.txt
+      python3 -m src.main.py [mode] [fichier_optionnel]
     """
     if len(sys.argv) < 2:
-        print("Usage : python main.py [mode] [fichier_optionnel]")
-        print("Modes disponibles : crossing | noCrossing | overflow")
+        print("Usage : python3 -m src.main.py [mode] [fichier_optionnel]")
+        print("Modes disponibles : crossing | noCrossing | overflow | negatif")
         sys.exit(1)
 
     mode = sys.argv[1]
@@ -69,8 +67,8 @@ def main():
     run_test(data, mode)
 
     # Mesure de performance
-    latency_t = 0.05  # ex : 50 ms
-    benchmark_compression(data, latency_t)
+    latency_t = 0.05  # ex : 50 ms à changer si nécessaire
+    benchmark_compression(data, latency_t,mode) #benchmark pour le mode demandé
 
 if __name__ == "__main__":
     main()

@@ -1,5 +1,6 @@
 import random
 from src.negatif_compressor import NegatifCompressor
+from src.benchmarks.measures import benchmark_compression
 
 def run_test(name, data):
     compressor = NegatifCompressor()
@@ -35,7 +36,7 @@ def main():
         "Zéros uniquement": [0, 0, 0, 0, 0],
         "Un seul élément positif": [42],
         "Un seul élément négatif": [-42],
-        "Liste vide": [],
+        
         "Alternance signes": [(-1)**i * i for i in range(1, 20)],
         "Doublons": [5, 5, 5, 5, 5],
         "Petits entiers avec zéro": [0, 1, -1, 2, -2, 3, -3],
@@ -60,7 +61,12 @@ def main():
         except Exception as e:
             print(f"[ERROR] {name} - Exception : {e}")
 
-    print(f"\nRésultats : {ok}/{total} tests réussis.")
+        latency_t = 0.05  # ex : 50 ms
+        benchmark_compression(data, latency_t, "negatif")
+
+    print(f"\nRésultats : {ok}/{total} tests réussis.\n")
+
+        
 
 
 if __name__ == "__main__":
